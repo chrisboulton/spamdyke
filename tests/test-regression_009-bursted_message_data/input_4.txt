@@ -1,0 +1,8 @@
+Pj4Kc3RhcnR4cmVmCjE0NDAyNgolJUVPRgo=
+--------------090104070801030102070807
+Content-Type: application/pdf;
+ name="spamdyke_readme.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="spamdyke_readme.pdf"
+

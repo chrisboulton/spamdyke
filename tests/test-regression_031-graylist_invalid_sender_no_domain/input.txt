@@ -1,0 +1,4 @@
+helo me
+mail from:<FROM_ADDRESS> SIZE=200
+rcpt to:<TARGET_EMAIL>
+quit

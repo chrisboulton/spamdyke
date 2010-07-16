@@ -1,0 +1,4 @@
+ehlo me
+starttls
+rset
+quit

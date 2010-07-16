@@ -1,0 +1,9 @@
+helo me
+mail from:<FROM_ADDRESS>
+rcpt to:<TARGET_EMAIL>
+data
+Subject: Test-TEST_NUM
+
+FOO!
+.
+quit

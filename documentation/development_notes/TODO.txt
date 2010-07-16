@@ -1,0 +1,132 @@
+HIGHEST PRIORITIES:
+  Add recipient validation.  This will probably require reimplementing
+    qmail's/vpopmail's .qmail file parser.  DO NOT reuse code from qmail or
+    vpopmail.
+  DKIM/SPF support, including ability to use valid DKIM/SPF as whitelists
+  Full log conditionality, based on IP or rDNS or more.
+  Make spamdyke log message information: From/To/Cc/Subject lines (better yet
+    make this configurable), presence of attachments and message size.
+  Add flags to blackhole mail instead of rejecting it.  Make this work correctly
+    when there are multiple recipients.
+  Add the ability to redirect rejected mail to alternate addresses (substitute
+    recipients).  Make this work correctly for multiple recipients.
+  Add the ability to redirect accepted mail to alternate addresses.
+  Add the ability to BCC accepted mail to alternate addresses (recipient
+    injection).
+  Add the ability to insert headers instead of rejecting a message.
+  Add the ability to modify the subject line instead of rejecting a message.
+  Full database support, especially for the graylist filter, to make life
+    simpler for administrators of large sites.
+  Add a feature that would automatically whitelist senders for a recipient
+    if the recipient had sent a message to the sender (an auto-whitelist).
+    Credit goes to Roman V. Isaev.
+  Add a "proxy mode" that will listen for incoming connections and tunnel
+    them to another server/port for non-qmail servers (or replace tcpserver
+    on qmail servers).  Use TLS to communicate with the remote server if
+    possible.  Listen on multiple interfaces/ports.
+  Wrap spamdyke in an NT service so MS Exchange administrators can use it.
+  Tarpit mode to trap botnet spammers the way LaBrea used to trap Code Red
+    attackers.
+
+LOWER PRIORITIES:
+  Add the ability to require TLS/SSL before authentication is allowed (e.g. a
+    "require-tls" value for "smtp-auth-level".  Credit goes to Eric Shubert.
+  Consider extending sender/recipient wildcards to allow user@ instead of just
+    @domain.  Credit goes to stephan.
+  Consider adding a filter to block messages where the From field doesn't match
+    the envelope sender.
+  Consider changing the logging of DENIED_OTHER to include the rejection text
+    from the downstream filter.  Credit goes to David Stiller.
+  Make spamdyke output a message for every connection no matter what, even a
+    short connect/disconnect.  Credit goes to Eric Shubert.
+  Create an IP-testing function (to check parsability and ranges) and change all
+    of the (many) tests to use it.
+  Change the unqualified recipient filter to read /var/qmail/control/envathost
+  Add a forward-resolve whitelist: give a list of FQDNs, resolve each one and
+    see if the IP matches the incoming IP.  This will make DynDNS work.
+    Credit goes to Christian Aust.
+  Make find_case_insensitive_needle more efficient.  Consider making it a
+    complete replacement for strcasestr().
+  Add support for /etc/hosts.
+  Change the sender blacklist to make it possible to block null senders
+    (bounces).  Credit goes to Venks Izod.
+  Change main() to return a different error code if config-test encounters an
+    error or if spamdyke can't start for some reason.  Credit goes to Eric
+    Shubert.
+  Change check_dnsrbl() and check_rhsbl() to keep a list of RBLs/RHSBLs and
+    success/failure codes so tests won't be repeated.  This will require
+    changing nihdns_query() to keep track of NXDOMAIN responses so negative
+    responses can be distinguished from missing responses.
+  Once nihdns_query() has been changed to track NXDOMAIN responses, change the
+    missing rDNS, unresolvable rDNS and missing MX filters to return permanent
+    rejection codes if NXDOMAIN is received; continue using temporary codes if 
+    no response is received.
+  Add HELO logging and filtering.  Credit goes to Pavel V. Yanchenko.
+  Allow filesystem-based filters to call commands to do processing for them.
+    Write some example commands to do gray/black/whitelisting and recipient
+    validation in MySQL.
+  Consider adding a log entry on exit to show the total wall time spent, the
+    time spent running filters, DNS queries, waiting on remote/child data, etc.
+    Credit goes to Ulrich Eckardt.
+  Modify the graylist filter to be more forgiving to mailing lists that use
+    tagged sender addresses.  Look for similarities between previously
+    graylisted addresses and allow future senders that match a pattern (e.g.
+    remove all numbers in the usernames).  Credit goes to Eric Shubert.
+  Consider adding support for the RBLSMTPD environment variable.  Credit goes
+    to Andras Korn.
+  Add the ability to limit full logging by IP or rDNS name.  Credit goes to
+    Paolo.
+  Fix the DNS spoofing "bug" by randomizing the outbound port with every query.
+    Try not to panic about it like CERT/CC did.
+  Consider adding support for Maxmind's GeoIP.  Credit goes to Andras Korn.
+  Implement LaBrea-style tarpitting when spamdyke is used to accept incoming
+    network connections.
+  Add a feature to limit simultaneous (or per-time-period) connections per
+    IP/rDNS/sender/recipient.
+  Log the Message-ID field so a message can be tracked from delivery to disk.
+    spamdyke will need to add the Message-ID field if needed.  Credit goes to
+    Frank SDI.
+  Consider something to change the per-recipient filters into global filters;
+    e.g. exceeding the max recipients or hitting a recipient blacklist rejects
+    _everything_, not just the recipient.  Credit goes to Frank SDI.
+  Rewrite the buffers in middleman() to use a ring buffer instead of constantly
+    memmove()ing data around.
+  Add a test mode to each filter that will run the filter and log the result
+    without actually blocking the connections.  That way, the admin can see what
+    would happen if different filters were engaged without risking false
+    negatives.  Credit goes to Marcin Orlowski.
+  Consider making log messages configurable with printf-style format strings.
+    Credit goes to Andras Korn.
+  Add a way to make the ip-in-rdns feature more or less aggressive.  This would
+    include matching portions of the IP address or allowing multiple characters
+    betweeen octets.  Credit goes to Marcin Orlowski.
+  Consider supporting CDB files.
+  Add a flag to use regexps in email address files (recipient/sender
+    white/blacklists)
+    "Some people, when confronted with a problem, think 'I know, I'll use
+    regular expressions.' Now they have two problems." — Jamie Zawinski
+  After spamdyke becomes a daemon, add a feature to periodically clean out the
+    graylist folders.
+  After spamdyke becomes a daemon, add a feature to periodically write statistics
+    to a file or database.  Perhaps listen to a FIFO so the stats can be read
+    on demand.
+  Rework the install documentation to make it clearer how to setup graylisting
+    and how to determine permissions/ownership.
+  Consider putting the graphing scripts in the distribution.
+  Consider putting the spamtrap and hunter_seeker scripts in the distribution.
+  Consider splitting check-rhsbl into two filters: one to check RHSBLs for the
+    rDNS name and one to check RHSBLs for the sender's domain name.  Credit goes
+    to Andras Korn.
+  Add the ability to limit the number of incoming messages from an IP/sender/
+    domain or to a recipient/domain in a given time period.
+  Add support for DIGEST-MD5 SMTP AUTH.
+  Add a "quick mode" for busy servers that will print a reject message and
+    immediately disconnect, instead of faking an SMTP conversation.
+  Consider adding an auto-whitelist feature when the remote server's IP
+    matches the MX record for the sender's domain.
+  Consider adding hooks for content scanners like ClamAV or SpamAssassin.
+  Find a way to query WHOIS for incoming domain names and reject all domains
+    newer than 5 days (domain tasting limit).
+  Add the ability to forward to multiple different servers at the same time.
+  Add a way to block messages based on the character set, so foreign language
+    spam can be blocked regardless of source.

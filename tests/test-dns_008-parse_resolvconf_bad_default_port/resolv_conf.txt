@@ -1,0 +1,4 @@
+nameserver NAMESERVER_IP_A
+nameserver NAMESERVER_IP_B
+nameserver NAMESERVER_IP_C
+port PORT_DEFAULT

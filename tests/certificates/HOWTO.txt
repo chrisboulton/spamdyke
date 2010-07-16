@@ -1,0 +1,39 @@
+To create a self-signed certificate with openssl in a combined PEM file with no
+passphrase:
+................................................................................
+openssl genrsa -des3 -out server.key.password -passout pass:foobar 1024
+openssl rsa -in server.key.password -out server.key -passin pass:foobar
+openssl req -new -key server.key -out server.csr
+openssl x509 -req -days 3650 -in server.csr -signkey server.key -out server.crt
+cat server.key server.crt > server.pem
+openssl gendh 512 >> server.pem
+................................................................................
+
+To create a self-signed certificate with openssl in a combined PEM file with the
+passphrase "foobar":
+................................................................................
+openssl genrsa -des3 -out server.key -passout pass:foobar 1024
+openssl req -new -key server.key -out server.csr -passin pass:foobar
+openssl x509 -req -days 3650 -in server.csr -signkey server.key -out server.crt -passin pass:foobar
+cat server.key server.crt > server.pem
+openssl gendh 512 >> server.pem
+................................................................................
+
+To create a self-signed certificate with openssl in separate PEM files with no
+passphrase:
+................................................................................
+openssl genrsa -des3 -out server.key.password -passout pass:foobar 1024
+openssl rsa -in server.key.password -out server.key.pem -passin pass:foobar
+openssl req -new -key server.key.pem -out server.csr
+openssl x509 -req -days 3650 -in server.csr -signkey server.key.pem -out server.crt.pem
+openssl gendh 512 >> server.crt.pem
+................................................................................
+
+To create a self-signed certificate with openssl in separate PEM files with the
+passphrase "foobar":
+................................................................................
+openssl genrsa -des3 -out server.key.pem -passout pass:foobar 1024
+openssl req -new -key server.key.pem -out server.csr -passin pass:foobar
+openssl x509 -req -days 3650 -in server.csr -signkey server.key.pem -out server.crt.pem -passin pass:foobar
+openssl gendh 512 >> server.crt.pem
+................................................................................

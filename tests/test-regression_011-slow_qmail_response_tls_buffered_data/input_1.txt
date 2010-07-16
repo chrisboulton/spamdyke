@@ -1,0 +1,8 @@
+EHLO foo.bar.quux.example.com
+STARTTLS
+EHLO foo.bar.quux.example.com
+MAIL FROM:<FROM_ADDRESS>
+RCPT TO:<TARGET_EMAIL>
+DATA
+Subject: Testing
+

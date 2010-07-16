@@ -1,0 +1,503 @@
+#!/bin/bash
+
+##
+# tests/run -- a script for testing spamdyke
+# Copyright (C) 2010 Sam Clippinger (samc (at) silence (dot) org)
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+
+CHECKPASSWORD_PATH=/home/vpopmail/bin/vchkpw
+if [ ! -x "${CHECKPASSWORD_PATH}" ]
+then
+  CHECKPASSWORD_PATH=/bin/checkpassword
+fi
+
+TRUE_PATH=/bin/true
+if [ ! -x "${TRUE_PATH}" ]
+then
+  TRUE_PATH=/usr/bin/true
+fi
+
+SLEEP_PATH=`which sleep`
+CPUTIME_PATH="`pwd`/cputime/cputime"
+SENDRECV_PATH="`pwd`/sendrecv/sendrecv"
+SMTPDUMMY_PATH="`pwd`/smtpdummy/smtpdummy"
+ADDSECS_PATH="`pwd`/addsecs/addsecs"
+EXITVALUE_PATH="`pwd`/exitvalue/exitvalue"
+SMTPAUTH_LOGIN_PATH="`pwd`/smtpauth/smtpauth_login"
+SMTPAUTH_PLAIN_PATH="`pwd`/smtpauth/smtpauth_plain"
+SMTPAUTH_CRAMMD5_PATH="`pwd`/smtpauth/smtpauth_crammd5"
+DNSDUMMY_PATH="`pwd`/dnsdummy/dnsdummy"
+DNSA_PATH="`pwd`/../utils/dnsa"
+DNSPTR_PATH="`pwd`/../utils/dnsptr"
+DOMAIN2PATH_PATH="`pwd`/../utils/domain2path"
+DOMAINSPLIT_PATH="`pwd`/../utils/domainsplit"
+SPAMDYKE_DIR="`pwd`/../spamdyke"
+SPAMDYKE_PATH="${SPAMDYKE_DIR}/spamdyke"
+QMAIL_CMDLINE="/var/qmail/bin/qmail-smtpd ${CHECKPASSWORD_PATH} ${TRUE_PATH}"
+AUTH_CMDLINE="${CHECKPASSWORD_PATH} ${TRUE_PATH}"
+TMPDIR=`pwd`/tmp
+CERTDIR=`pwd`/certificates
+
+export TCPLOCALPORT=25
+
+skipped_tests=""
+failed_tests=""
+show_usage="false"
+continue_processing="true"
+success_count=0
+skipped_count=0
+failed_count=0
+total_tests=0
+master_start_time=`date "+%s"`
+
+if [ $# -lt 1 ]
+then
+  show_usage=true
+  continue_processing=false
+fi
+
+if [ "${continue_processing}" != "false" ]
+then
+  if [ "$1" == "clean" ]
+  then
+    pushd sendrecv
+    make clean
+    popd
+
+    pushd smtpdummy
+    make clean
+    popd
+
+    pushd addsecs
+    make clean
+    popd
+
+    pushd smtpauth
+    make clean
+    popd
+
+    pushd exitvalue
+    make clean
+    popd
+
+    pushd cputime
+    make clean
+    popd
+
+    pushd dnsdummy
+    make clean
+    popd
+
+    pushd ../utils
+    make clean
+    popd
+
+    if [ -d ${TMPDIR} ]
+    then
+      chmod 777 `find ${TMPDIR}/* 2> /dev/null` 2> /dev/null
+      rm -rf ${TMPDIR}/* 2> /dev/null
+      rm -rf ${TMPDIR} 2> /dev/null
+    fi
+    echo Cleanup complete.
+
+    continue_processing=false
+  else
+    if [ $# -lt 5 ]
+    then
+      show_usage=true
+      continue_processing=false
+    fi
+  fi
+fi
+
+if [ "${continue_processing}" != "false" ]
+then
+  if [ "${UID}" != "0" ]
+  then
+    if [ "$0" != "./subrun" ]
+    then
+      echo ERROR: You must be root to run the spamdyke tests.
+      show_usage=true
+      continue_processing=false
+    fi
+  fi
+fi
+
+if [ "${continue_processing}" != "false" ]
+then
+  if [ -z "${TESTSD_UNRESOLVABLE_RDNS_IP}" ]
+  then
+    echo ERROR: TESTSD_UNRESOLVABLE_RDNS_IP is not set.
+    show_usage=true
+    continue_processing=false
+  fi
+
+  if [ -z "${TESTSD_IP_IN_CC_RDNS}" ]
+  then
+    echo ERROR: TESTSD_IP_IN_CC_RDNS is not set.
+    show_usage=true
+    continue_processing=false
+  fi
+
+  if [ -z "${TESTSD_IP_IN_RDNS_KEYWORD_IP}" ]
+  then
+    echo ERROR: TESTSD_IP_IN_RDNS_KEYWORD_IP is not set.
+    show_usage=true
+    continue_processing=false
+  fi
+
+  if [ -z "${TESTSD_IP_IN_RDNS_KEYWORD}" ]
+  then
+    echo ERROR: TESTSD_IP_IN_RDNS_KEYWORD is not set.
+    show_usage=true
+    continue_processing=false
+  fi
+
+  if [ -z "${TESTSD_IP_IN_RDNS_PATTERN_IP}" ]
+  then
+    echo ERROR: TESTSD_IP_IN_RDNS_PATTERN_IP is not set.
+    show_usage=true
+    continue_processing=false
+  fi
+
+  if [ -z "${TESTSD_IP_IN_RDNS_PATTERN}" ]
+  then
+    echo ERROR: TESTSD_IP_IN_RDNS_PATTERN is not set.
+    show_usage=true
+    continue_processing=false
+  fi
+    
+  if [ -z "${TESTSD_RDNS_IP}" ]
+  then
+    echo ERROR: TESTSD_RDNS_IP is not set.
+    show_usage=true
+    continue_processing=false
+  fi
+fi
+
+if [ "${continue_processing}" != "false" ]
+then
+  if [ "$0" != "./subrun" ]
+  then
+    pushd ${SPAMDYKE_DIR}
+    make distclean
+    ./configure --enable-tls --with-excessive-output --with-debug-symbols
+    make
+    popd
+
+    pushd ../utils
+    make distclean
+    ./configure
+    make
+    popd
+
+    pushd sendrecv
+    make clean
+    make
+    popd
+
+    pushd smtpdummy
+    make clean
+    make
+    popd
+
+    pushd addsecs
+    make clean
+    make
+    popd
+
+    pushd smtpauth
+    make clean
+    make
+    popd
+
+    pushd exitvalue
+    make clean
+    make
+    popd
+
+    pushd cputime
+    make clean
+    make
+    popd
+
+    pushd dnsdummy
+    make clean
+    make
+    popd
+
+    if [ -d ${TMPDIR} ]
+    then
+      find ${TMPDIR} -print0 2> /dev/null | xargs -0 chmod 777
+      rm -rf ${TMPDIR} 2> /dev/null
+    fi
+
+    mkdir -p ${TMPDIR}
+    chmod 777 ${TMPDIR}
+  fi
+
+  if [ ! -x ${SPAMDYKE_PATH} ]
+  then
+    echo "ERROR: spamdyke cannot be found or built at ${SPAMDYKE_PATH}"
+    continue_processing=false
+  fi
+
+  if [ ! -x ${SENDRECV_PATH} ]
+  then
+    echo "ERROR: sendrecv cannot be found or built at ${SENDRECV_PATH}"
+    continue_processing=false
+  fi
+
+  if [ ! -x ${SMTPDUMMY_PATH} ]
+  then
+    echo "ERROR: smtpdummy cannot be found or built at ${SMTPDUMMY_PATH}"
+    continue_processing=false
+  fi
+
+  if [ ! -x ${ADDSECS_PATH} ]
+  then
+    echo "ERROR: addsecs cannot be found or built at ${ADDSECS_PATH}"
+    continue_processing=false
+  fi
+
+  if [ ! -x ${EXITVALUE_PATH} ]
+  then
+    echo "ERROR: exitvalue cannot be found or built at ${EXITVALUE_PATH}"
+    continue_processing=false
+  fi
+
+  if [ ! -x ${CPUTIME_PATH} ]
+  then
+    echo "ERROR: cputime cannot be found or built at ${CPUTIME_PATH}"
+    continue_processing=false
+  fi
+
+  if [ ! -x ${DNSDUMMY_PATH} ]
+  then
+    echo "ERROR: dnsdummy cannot be found or built at ${DNSDUMMY_PATH}"
+    continue_processing=false
+  fi
+fi
+
+if [ "${continue_processing}" != "false" ]
+then
+  output=`${SPAMDYKE_PATH} -v 2>&1 | grep "+TLS"`
+  if [ -z "${output}" ]
+  then
+    echo "ERROR: TLS support is not compiled into ${SPAMDYKE_PATH}"
+    continue_processing=false
+  fi
+
+  output=`${SPAMDYKE_PATH} -v 2>&1 | grep "+CONFIGTEST"`
+  if [ -z "${output}" ]
+  then
+    echo "ERROR: config-test support is not compiled into ${SPAMDYKE_PATH}"
+    continue_processing=false
+  fi
+
+  output=`${SPAMDYKE_PATH} -v 2>&1 | grep "+DEBUG"`
+  if [ -z "${output}" ]
+  then
+    echo "ERROR: debugging output is not compiled into ${SPAMDYKE_PATH}"
+    continue_processing=false
+  fi
+
+  output=`${SPAMDYKE_PATH} -v 2>&1 | grep "+EXCESSIVE"`
+  if [ -z "${output}" ]
+  then
+    echo "ERROR: excessive debugging output is not compiled into ${SPAMDYKE_PATH}"
+    continue_processing=false
+  fi
+fi
+
+if [ "${continue_processing}" != "false" ]
+then
+  RECASED_TO_ADDRESS=`echo $1 | sed -e "s/@.*//"`@`echo $1 | sed -e "s/[^@]*@//" | awk '{ print toupper($1) }'`
+  SMTP_AUTH_USERNAME=$2
+  SMTP_AUTH_PASSWORD=$3
+  NONROOT_USERNAME=$4
+  NONROOT_PASSWORD=$5
+
+  shift 5
+  if [ $# -lt 1 ]
+  then
+    target=test-*
+  else
+    target=$*
+  fi
+
+  for dir in ${target}
+  do
+    total_tests=$[${total_tests}+1]
+  done
+  remaining_tests=${total_tests}
+  test_start_time=`date "+%s"`
+
+  for dir in ${target}
+  do
+    if [ -d ${dir} ]
+    then
+      cd ${dir}
+
+      if [ "$0" != "./subrun" ]
+      then
+        echo ""
+        echo ................................................................................
+        echo ... Running ${dir}
+        echo ................................................................................
+      fi
+
+      export -n TCPREMOTEIP
+      export -n TCPREMOTEHOST
+      export -n TCPLOCALPORT
+      export -n REMOTE_HOST
+      export -n TIMEOUT
+      export -n RES_OPTIONS
+      export -n RELAYCLIENT
+
+      TEST_NUM=`echo ${dir} | sed -e "s/^test-//" -e "s/-.*$//"`
+      outcome=""
+      source run.sh ${RECASED_TO_ADDRESS} ${SMTP_AUTH_USERNAME} ${SMTP_AUTH_PASSWORD} ${NONROOT_USERNAME} ${NONROOT_PASSWORD}
+
+      if [ "$0" != "./subrun" ]
+      then
+        echo ""
+        echo ................................................................................
+
+        if [ "${outcome}" == "success" ]
+        then
+          echo ... SUCCESS: ${dir}
+          success_count=$[${success_count}+1]
+        else
+          if [ "${outcome}" == "skipped" ]
+          then
+            echo ... SKIPPED: ${dir}
+            skipped_tests="${skipped_tests}${dir} "
+            skipped_count=$[${skipped_count}+1]
+          else
+            echo ... FAILURE: ${dir}
+            failed_tests="${failed_tests}${dir} "
+            failed_count=$[${failed_count}+1]
+          fi
+        fi
+
+        remaining_tests=$[${remaining_tests}-1]
+        duration=$[`date "+%s"`-${master_start_time}]
+        minutes=`echo $[${duration}/60] | sed -e "s/\..*//"`
+        seconds=$[${duration}-$[${minutes}*60]]
+        if [ ${seconds} -lt 10 ]
+        then
+          seconds=0${seconds}
+        fi
+
+        duration=$[`date "+%s"`-${test_start_time}]
+        etf=$[$[${duration}*${remaining_tests}]/$[${total_tests}-${remaining_tests}]]
+        etf_minutes=`echo $[${etf}/60] | sed -e "s/\..*//"`
+        etf_seconds=$[${etf}-$[${etf_minutes}*60]]
+        if [ ${etf_seconds} -lt 10 ]
+        then
+          etf_seconds=0${etf_seconds}
+        fi
+
+        echo ... ${success_count} SUCCESSFUL, ${failed_count} FAILED, ${skipped_count} SKIPPED, ${remaining_tests} REMAINING, ${minutes}:${seconds} RUN TIME, ${etf_minutes}:${etf_seconds} ETC
+        echo ................................................................................
+      fi
+
+      cd ..
+    else
+      echo "Test(s) not found!"
+    fi
+  done
+
+  if [ "$0" != "./subrun" ]
+  then
+    if [ ! -z "${skipped_tests}" ]
+    then
+      echo ""
+      echo ................................................................................
+      echo SKIPPED TESTS:
+      for test in ${skipped_tests}
+      do
+        echo ${test}
+      done
+    fi
+    if [ ! -z "${failed_tests}" ]
+    then
+      echo ""
+      echo ................................................................................
+      echo FAILED TESTS:
+      for test in ${failed_tests}
+      do
+        echo ${test}
+      done
+    fi
+  fi
+fi
+
+if [ "${show_usage}" == "true" ]
+then
+  if [ ! -x "${DOMAINSPLIT_PATH}" ]
+  then
+    pushd ../utils
+    make
+    popd
+  fi
+
+  echo "USAGE: $0 VALID_EMAIL_ADDRESS USERNAME PASSWORD ACCOUNTNAME ACCOUNTPASSWORD [ TEST ... ]"
+  echo "       $0 clean"
+  echo ""
+  echo "The following environment variables are needed for various tests (those tests"
+  echo "will fail if they are not set):"
+  echo ""
+  echo "TESTSD_UNRESOLVABLE_RDNS_IP - IP address with an rDNS name that does not resolve"
+  echo "TESTSD_IP_IN_CC_RDNS - IP address with an rDNS name that contains the IP and a"
+  echo "  country code"
+  echo "TESTSD_IP_IN_RDNS_KEYWORD_IP - IP address with an rDNS name that contains the IP"
+  echo "  and a keyword"
+  echo "TESTSD_IP_IN_RDNS_KEYWORD - keyword found in TESTSD_IP_IN_RDNS_KEYWORD_IP's rDNS"
+  echo "  name"
+  echo "TESTSD_IP_IN_RDNS_PATTERN_IP - IP address with an rDNS name that contains the IP"
+  echo "  and a pattern"
+  echo "TESTSD_IP_IN_RDNS_PATTERN - pattern found in TESTSD_IP_IN_RDNS_PATTERN_IP's rDNS"
+  echo "  name"
+  echo "TESTSD_RDNS_IP - IP address with an rDNS name"
+
+  if [ -f /var/log/maillog ]
+  then
+    echo ""
+    echo "Recommendations:"
+    echo "export TESTSD_UNRESOLVABLE_RDNS_IP=`grep DENIED_RDNS_RESOLVE /var/log/maillog | awk '{ print $12 }' | tail -1`"
+    echo "export TESTSD_IP_IN_CC_RDNS=`grep DENIED_IP_IN_CC_RDNS /var/log/maillog | awk '{ print $12 }' | tail -1`"
+    echo "export TESTSD_IP_IN_RDNS_KEYWORD_IP=`grep DENIED_IP_IN_RDNS /var/log/maillog | awk '{ print $12 }' | tail -1`"
+    output=`grep DENIED_IP_IN_RDNS /var/log/maillog | tail -1 | awk '{ print $13 }'`
+    if [ "${output}" == "origin_rdns:" ]
+    then
+      output=`grep DENIED_IP_IN_RDNS /var/log/maillog | tail -1 | awk '{ print $14 }'`
+    fi
+    for phrase in `echo "${output}" | sed -e 's/[\\.-]/ /g'`
+    do
+      subphrase=`echo ${phrase} | sed -e 's/[0-9]//g'`
+      if [ "${subphrase}" == "${phrase}" ]
+      then
+        echo "export TESTSD_IP_IN_RDNS_KEYWORD=${phrase}"
+        break
+      fi
+    done
+    echo "export TESTSD_IP_IN_RDNS_PATTERN_IP=`grep DENIED_IP_IN_RDNS /var/log/maillog | awk '{ print $12 }' | tail -1`"
+    echo "export TESTSD_IP_IN_RDNS_PATTERN=\"${phrase} .`echo "${output}" | ${DOMAINSPLIT_PATH}`\""
+    echo "export TESTSD_RDNS_IP=`grep ALLOWED /var/log/maillog | awk '{ print $12 }' | tail -1`"
+  fi
+fi

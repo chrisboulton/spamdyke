@@ -1,0 +1,6 @@
+ehlo me
+auth login AUTH_USERNAME
+AUTH_PASSWORD
+mail from:<FROM_ADDRESS>
+rcpt to:<TARGET_EMAIL>
+quit

@@ -1,0 +1,4 @@
+ehlo me
+mail from:<FROM_ADDRESS>
+ehlo me
+quit

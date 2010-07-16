@@ -1,0 +1,5 @@
+ehlo me
+auth login
+AUTH_USERNAME
+AUTH_PASSWORD
+quit

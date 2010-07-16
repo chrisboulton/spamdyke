@@ -1,0 +1,42 @@
+EHLO foo.bar.quux.example.com
+STARTTLS
+EHLO foo.bar.quux.example.com
+MAIL FROM:<FROM_ADDRESS>
+RCPT TO:<TARGET_EMAIL>
+DATA
+Received: (qmail 16731 invoked by uid 110); 1 Jan 2000 00:00:00 -0600
+Delivered-To: 20-TARGET_EMAIL
+Received: (qmail 16725 invoked from network); 1 Jan 2000 00:00:00 -0600
+Received: from s1.example.com (HELO foo.quuuux.example.com) (111.222.33.144)
+  by foo.bar.quux.example.com with SMTP; 1 Jan 2000 00:00:00 -0600
+Received: (qmail 28005 invoked by uid 508); 1 Jan 2000 00:00:00 -0000
+Received: from 111.222.33.44 by foo.quuuux.example.com (envelope-from <FROM_ADDRESS>, uid 501) with qmail-scanner-1.25
+ (clamdscan: 0.88.7/5019. spamassassin: 3.0.6.
+ Clear:RC:1(111.222.33.44):.
+ Processed in 0.017372 secs); 01 Jan 2000 00:00:00 -0000
+Received: from foo.bar.baz.qux.quuuux.example.com (HELO foo.quux.local) (FROM_ADDRESS@111.222.33.44)
+  by foo.quuuux.example.com with ESMTPA; 1 Jan 2000 00:00:00 -0000
+Message-ID: <47589E82.5030505@example.com>
+Date: Mon, 01 Jan 2000 00:00:00 -0600
+From: TEST_NUM <FROM_ADDRESS>
+User-Agent: Thunderbird 2.0.0.9 (Macintosh/20071031)
+MIME-Version: 1.0
+To: TARGET_EMAIL
+Subject: TEST_NUM
+Content-Type: multipart/mixed;
+ boundary="------------090104070801030102070807"
+
+This is a multi-part message in MIME format.
+--------------090104070801030102070807
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+FOO
+
+--------------090104070801030102070807
+Content-Type: application/pdf;
+ name="spamdyke_home.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="spamdyke_home.pdf"
+

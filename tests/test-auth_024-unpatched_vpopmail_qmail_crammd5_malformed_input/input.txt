@@ -1,0 +1,6 @@
+ehlo me
+auth cram-md5
+x
+mail from:<FROM_ADDRESS>
+rcpt to:<TARGET_EMAIL>
+quit

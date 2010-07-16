@@ -1,0 +1,11 @@
+ehlo me
+auth     	 cram-md5
+mail from:<FROM_ADDRESS>
+rcpt to:<TARGET_EMAIL>
+data
+To: <TARGET_EMAIL>
+Subject: Test-TEST_NUM
+
+FOO!
+.
+quit

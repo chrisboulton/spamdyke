@@ -1,0 +1,58 @@
+Correct email address format is documented in RFC 2822, which supercedes RFC 822.
+Notes below.
+
+FWS is:
+  zero or more ASCII 9,32 (2822#2.2.2, 2822#3.2.3)
+  zero or more CRLF (2822#3.2.3)
+  one or more ASCII 9,32 (2822#2.2.2, 2822#3.2.3)
+
+A comment is:
+  a single ( character (2822#3.2.3)
+  optional loop:
+    optional FWS (2822#3.2.3)
+    sequence of ASCII chars 1-8,11,12,14-31,33-39,42-91,93-127 (2822#3.2.3)
+  optional FWS (2822#3.2.3)
+  a single ) character (2822#3.2.3)
+
+CFWS is:
+  optional loop:
+    optional FWS (2822#3.2.3)
+    comment (2822#3.2.3)
+  optional FWS (2822#3.2.3)
+  comment OR FWS (2822#3.2.3)
+
+search for :
+search for first legal character: alphas, digits, ".!#$%&'*+-/=?^_`{}|~
+search past any CFWS (2822#3.2.4, 2822#3.2.5)
+decide if local-part is a dot-atom or a quoted-string (2822#3.4.1)
+Is dot-atom if local-part is all alpha/digits plus any of .!#$%&'*+-/=?^_`{}|~ (2822#3.2.4)
+If dot-atom:
+  search past any CFWS (2822#3.2.4)
+  accumulate all alpha/digits plus !#$%&'*+-/=?^_`{}|~ (2822#3.2.4)
+  optional loop:
+    accumulate all . (2822#3.2.4)
+    accumulate all alpha/digits plus !#$%&'*+-/=?^_`{}|~ (2822#3.2.4)
+  search past any CFWS (2822#3.2.4)
+If quoted string:
+  find and skip " (2822#3.2.5)
+  loop:
+    search past any FWS (2822#3.2.5)
+    accumulate any ASCII chars 1-8,11,12,14-31,33,35-91,93-127 (2822#3.2.5)
+    accumulate any \ followed by any character, remove \ (2822#3.2.5, 2822#3.2.2)
+  search past any FWS (2822#3.2.5)
+  find and skip " (2822#3.2.5)
+search past any CFWS (2822#3.2.4, 2822#3.2.5)
+find @ (2822#3.4.1)
+search past any CFWS (2822#3.2.4, 2822#3.4.1)
+decide if domain-part is a dot-atom or a domain-literal (2822#3.4.1)
+if dot-atom:
+  local-part is all alpha/digits plus any of .!#$%&'*+-/=?^_`{}|~ (2822#3.2.4)
+else if domain-literal:
+  find and skip [ (2822#3.4.1)
+  loop:
+    search past any FWS (2822#3.4.1)
+    accumulate any ASCII chars 1-9,11,12,14-31,33-90,94-126 (2822#3.2.1, 2822#3.4.1)
+    accumulate any \ followed by any character, remove \ (2822#3.4.1, 2822#3.2.2)
+  search past any FWS (2822#3.4.1)
+  find and skip ] (2822#3.4.1)
+search past any CFWS (2822#3.2.4, 2822#3.4.1)

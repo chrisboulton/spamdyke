@@ -1,0 +1,3 @@
+ehlo me
+auth cram-md5
+quit

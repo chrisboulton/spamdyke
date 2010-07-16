@@ -1,0 +1,4 @@
+helo me
+mail from:    FROM_ADDRESS   OTHER=PARAMETERS       EVEN MORE PARAMETERS
+rcpt to:<TARGET_EMAIL>
+quit

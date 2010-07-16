@@ -1,0 +1,6 @@
+ehlo me
+auth plain
+AUTH_DATA
+mail from:<FROM_ADDRESS>
+rcpt to:<TARGET_EMAIL>
+quit

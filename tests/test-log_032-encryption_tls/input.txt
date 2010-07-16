@@ -1,0 +1,5 @@
+ehlo me
+starttls
+mail from:<FROM_ADDRESS>
+rcpt to:<TARGET_EMAIL>
+quit

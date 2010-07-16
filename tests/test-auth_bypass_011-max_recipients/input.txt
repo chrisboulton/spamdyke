@@ -1,0 +1,15 @@
+ehlo me
+auth login
+AUTH_USERNAME
+AUTH_PASSWORD
+mail from:<FROM_ADDRESS>
+rcpt to:<TARGET_EMAIL>
+rcpt to:<TARGET_EMAIL>
+rcpt to:<TARGET_EMAIL>
+data
+To: <TARGET_EMAIL>
+Subject: Test-TEST_NUM
+
+FOO!
+.
+quit

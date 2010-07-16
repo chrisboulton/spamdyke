@@ -2680,6 +2680,23 @@ int prepare_settings(int argc, char *argv[], char *envp[], int (*main_function)(
       " Ignored if \"tls-level\" is none."
     },
     {
+      CONFIG_TYPE_FILE_SINGLETON,
+      CONFIG_ACCESS_READ_ONLY,
+      CONFIG_LOCATION_CMDLINE | CONFIG_LOCATION_GLOBAL_FILE,
+      { "tls-cipher-list", required_argument, NULL, -1 },
+      { .string_value = "DEFAULT" },
+      { .string_value = "DEFAULT" },
+      { .get_string = CONFIG_ACCESSOR_STRING(tls_cipher_list) },
+      { .max_strlen = 0 },
+      FILTER_DECISION_UNDECIDED,
+      FILTER_GRACE_NONE,
+      NULL,
+      NULL,
+      NULL,
+      "STRING",
+      "List of TLS ciphers to support. Useful to disable insecure or weak ciphers. Default: DEFAULT"
+    },
+    {
       CONFIG_TYPE_NAME_ONCE,
       CONFIG_ACCESS_NONE,
       CONFIG_LOCATION_CMDLINE | CONFIG_LOCATION_GLOBAL_FILE,

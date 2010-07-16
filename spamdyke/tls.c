@@ -197,17 +197,28 @@ int tls_init_inner(struct filter_settings *current_settings, SSL_CTX **target_tl
       {
       error_occurred = 0;
 
-      if ((current_settings->current_options->strlen_tls_privatekey_password == 0) &&
-          (current_settings->current_options->tls_privatekey_password_file != NULL))
+      if (SSL_CTX_set_cipher_list(*target_tls_context, current_settings->current_options->tls_cipher_list) == 1)
+        SPAMDYKE_LOG_EXCESSIVE(current_settings, LOG_DEBUGX_TLS_CIPHERLIST, current_settings->current_options->tls_cipher_list);
+      else
+        {
+        SPAMDYKE_LOG_ERROR(current_settings, LOG_ERROR_TLS_SETCIPHER "%s : %s", current_settings->current_options->tls_cipher_list, tls_error(current_settings, tls_return));
+        error_occurred = 1;
+        }
+
+      if (!error_occurred &&
+          ((current_settings->current_options->strlen_tls_privatekey_password == 0) &&
+          (current_settings->current_options->tls_privatekey_password_file != NULL)))
         current_settings->current_options->strlen_tls_privatekey_password = read_file_first_line(current_settings, current_settings->current_options->tls_privatekey_password_file, &current_settings->current_options->tls_privatekey_password);
 
-      if (current_settings->current_options->strlen_tls_privatekey_password > 0)
+      if (!error_occurred &&
+          (current_settings->current_options->strlen_tls_privatekey_password > 0))
         {
         SSL_CTX_set_default_passwd_cb(*target_tls_context, &tls_password_callback);
         SSL_CTX_set_default_passwd_cb_userdata(*target_tls_context, (void *)current_settings->current_options);
         }
 
-      if (current_settings->current_options->tls_certificate_file != NULL)
+      if (!error_occurred &&
+          (current_settings->current_options->tls_certificate_file != NULL))
         {
         if ((tls_return = SSL_CTX_use_certificate_chain_file(*target_tls_context, current_settings->current_options->tls_certificate_file)) == 1)
           SPAMDYKE_LOG_EXCESSIVE(current_settings, LOG_DEBUGX_TLS_CERTIFICATE, current_settings->current_options->tls_certificate_file);

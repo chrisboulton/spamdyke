@@ -717,6 +717,7 @@ struct rejection_data
 #define LOG_ERROR_MALLOC                "ERROR: out of memory - unable to allocate %lu bytes"
 #define LOG_ERROR_TLS_INIT              "ERROR: unable to initialize SSL/TLS library"
 #define LOG_ERROR_TLS_CERTIFICATE       "ERROR: unable to load SSL/TLS certificate from file: "
+#define LOG_ERROR_TLS_SETCIPHER         "ERROR: unable to set supported SSL/TLS ciphers: "
 #define LOG_ERROR_TLS_PRIVATEKEY        "ERROR: unable to load or decrypt SSL/TLS private key from file: "
 #define LOG_ERROR_TLS_CERT_CHECK        "ERROR: incorrect SSL/TLS private key password or SSL/TLS certificate/privatekey mismatch"
 #define LOG_ERROR_TLS_ACCEPT            "ERROR: unable to start SSL/TLS connection"
@@ -937,6 +938,7 @@ struct rejection_data
 #define LOG_DEBUGX_TLS_CERTIFICATE      "EXCESSIVE(%s()@%s:%d): loaded TLS certificate from file: %s"
 #define LOG_DEBUGX_TLS_PRIVATEKEY_SEPARATE      "EXCESSIVE(%s()@%s:%d): loaded TLS private key from separate file: %s"
 #define LOG_DEBUGX_TLS_PRIVATEKEY_CERTIFICATE   "EXCESSIVE(%s()@%s:%d): loaded TLS private key from certificate file: %s"
+#define LOG_DEBUGX_TLS_CIPHERLIST                "EXCESSIVE(%s()@%s:%d): set TLS/SSL ciphers to: %s"
 #define LOG_DEBUGX_TLS_CERT_CHECK               "EXCESSIVE(%s()@%s:%d): verified TLS certificate and private key"
 #define LOG_DEBUGX_ENVIRONMENT_FOUND    "EXCESSIVE(%s()@%s:%d): found environment variable %.*s: %s"
 #define LOG_DEBUGX_PATH_DEFAULT         "EXCESSIVE(%s()@%s:%d): no PATH found in environment, using default PATH: %s"
@@ -1403,6 +1405,7 @@ struct option_set
   int tls_level;
   char *tls_certificate_file;
   char *tls_privatekey_file;
+  char *tls_cipher_list;
   int strlen_tls_privatekey_password;
   char *tls_privatekey_password;
   char *tls_privatekey_password_file;
